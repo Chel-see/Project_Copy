@@ -1,26 +1,29 @@
 from App.models import User, Student, Employer, Staff
 from App.database import db
 
-def create_user(username, password, user_type):
+def create_user(username, password, email, phone_number, user_type):
     try:
-        newuser = User(username=username, password=password, role=user_type)
-        db.session.add(newuser)
-        db.session.flush() 
-        
-        if user_type == "student":
-            student = Student(username=username, user_id=newuser.id)
-            db.session.add(student)
-        elif user_type == "employer":
-            employer = Employer(username=username, user_id=newuser.id)
-            db.session.add(employer)
-        elif user_type == "staff":
-            staff = Staff(username=username, user_id=newuser.id)
-            db.session.add(staff)
-        else:
+        type_map = {
+            "student": Student,
+            "employer": Employer,
+            "staff": Staff
+        }
+
+        UserClass = type_map.get(user_type)
+        if not UserClass:
             return False
         
+        new_user = UserClass(
+            username=username,
+            password=password,
+            email=email,
+            phone_number=phone_number
+        )
+
+        db.session.add(new_user)
         db.session.commit()
         return True
+    
     except Exception as e:
         db.session.rollback()
         return False
