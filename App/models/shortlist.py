@@ -20,18 +20,18 @@ class Shortlist(db.Model):
     staff = db.relationship('Staff', backref=('shortlist'), lazy=True)
 
 
-    def __init__(self, student_id, position_id, staff_id,status):
+    def __init__(self, student_id, position_id, staff_id):
         self.student_id = student_id
         self.position_id = position_id
         self.staff_id = staff_id
-        self.status = status
+        self.status ="shortlisted"
       
       
     def getStatus(self):
         return self.status
     
-    def setStatus(self, status): 
-        self.status = status
+    def setStatus(self, context:Context): 
+        self.status = context.getStateName()
 
     def student_shortlist(self, student_id):  # gets all the short list for a particular student
         return db.session.query(Shortlist).filter_by(student_id=student_id).all()
