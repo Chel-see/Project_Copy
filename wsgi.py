@@ -50,14 +50,19 @@ def list_user_command(format):
     else:
         print(get_all_users_json())
 
-@user_cli.command("add_position", help="Adds a position")
-@click.argument("title", default="Software Engineer")
+
+
+@user_cli.command("add_position", help="Employer opens a position")
 @click.argument("employer_id", default=1)
-@click.argument("number", default=1)
-def add_position_command(title, employer_id, number):
-    position = open_position(title, employer_id, number)
+@click.argument("title", default="Software Engineer")
+@click.argument("number_of_positions", default=1)
+@click.argument("gpa_requirement",default=3.0)
+
+def add_position_command(employer_id,title, number_of_positions, gpa_requirement):
+    
+    position = open_position(employer_id, title, number_of_positions, gpa_requirement)
     if position:
-        print(f'{title} created!')
+        print(f'Employer {position.employer} created {position.title} position with id {position.id}')
     else:
         print(f'Employer {employer_id} does not exist')
 
