@@ -1,6 +1,4 @@
 from App.models.application_state import ApplicationState
-from App.models.shortlisted_state import ShortListedState
-from App.models.rejected_state import RejectedState
 
 
 class AppliedState(ApplicationState):
@@ -12,6 +10,7 @@ class AppliedState(ApplicationState):
     # Applied → Shortlisted
     def next(self):
         if self.context:
+            from App.models.shortlisted_state import ShortListedState
             self.context.setState(ShortListedState())
 
     # Applied has no previous state
@@ -21,6 +20,7 @@ class AppliedState(ApplicationState):
     # withdraw() always means rejection
     def withdraw(self):
         if self.context:
+            from App.models.rejected_state import RejectedState
             self.context.setState(RejectedState())
 
     # No special accept/reject behavior here
@@ -29,6 +29,7 @@ class AppliedState(ApplicationState):
 
     def reject(self):
         if self.context:
+            from App.models.rejected_state import RejectedState
             self.context.setState(RejectedState())
 
   

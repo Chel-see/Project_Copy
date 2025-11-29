@@ -13,14 +13,14 @@ from App.controllers import (
     setup_jwt,
     add_auth_context
 )
+### NOTE to TECHTONIC MEMBERS: Uncomment this before submission ###
+#from App.views import views #setup_admin
 
-from App.views import views #setup_admin
 
-
-
-def add_views(app):
-    for view in views:
-        app.register_blueprint(view)
+### NOTE to TECHTONIC MEMBERS: Uncomment this before submission ###
+# def add_views(app):
+#     for view in views:
+#         app.register_blueprint(view)
 
 def create_app(overrides={}):
     app = Flask(__name__, static_url_path='/static')
@@ -29,7 +29,7 @@ def create_app(overrides={}):
     add_auth_context(app)
     photos = UploadSet('photos', TEXT + DOCUMENTS + IMAGES)
     configure_uploads(app, photos)
-    add_views(app)
+    # add_views(app) # NOTE to TECHTONIC MEMBERS: Uncomment this before submission
     init_db(app)
     jwt = setup_jwt(app)
     #setup_admin(app)

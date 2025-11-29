@@ -1,6 +1,6 @@
 from App.database import db
 
-from .staff import create_user,staff_shortlist_student
+from .staff import create_staff,staff_shortlist_student
 from .employer import create_employer
 from .student import create_student
 from .position import open_position

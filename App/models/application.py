@@ -1,7 +1,8 @@
-from App import db
+from App.database import db
 from App.models.context import Context
 from App.models.applied_state import AppliedState
 from App.models.shortlisted_state import ShortListedState
+from App.models.rejected_state import RejectedState
 
 class Application(db.Model):
     __tablename__ = "application"
@@ -30,7 +31,7 @@ class Application(db.Model):
             self.context.state.previous()
         elif isinstance(self.context.state, RejectedState()) and newStatus=="shortlisted":
             self.context.state.previous()
-        elif newStatus == "withdrawn" #Student withdraws from position
+        elif newStatus == "withdrawn": #Student withdraws from position
             self.context.setState(RejectedState())
         self.status = self.context.state.name
         db.session.commit()

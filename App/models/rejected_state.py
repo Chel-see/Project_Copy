@@ -1,5 +1,4 @@
 from App.models.application_state import ApplicationState
-from App.models.shortlisted_state import ShortlistedState
 
 class RejectedState(ApplicationState):
     def __init__(self, reason="Not specified"):
@@ -11,7 +10,8 @@ class RejectedState(ApplicationState):
 
     def previous(self):
         if self.context:
-            self.context.setState(ShortlistedState())
+            from App.models.shortlisted_state import ShortListedState
+            self.context.setState(ShortListedState())
         
     def viewReason(self):
         return self.reason

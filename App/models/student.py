@@ -10,7 +10,7 @@ class Student(User):
     id = db.Column(db.Integer,db.ForeignKey('user.id'), primary_key=True)
     degree = db.Column(db.String(256))
     resume = db.Column(db.String(256))
-    dob = db.Column(db.Date)
+    dob = db.Column(db.String(10))
     gpa = db.Column(db.Float)
     
     __mapper_args__={"polymorphic_identity" : "student"}

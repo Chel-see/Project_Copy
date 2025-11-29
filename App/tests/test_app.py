@@ -16,7 +16,8 @@ from App.controllers import (
     get_positions_by_employer,
     add_student_to_shortlist,
     get_shortlist_by_student,
-    decide_shortlist
+    decide_shortlist,
+    staff_shortlist_student
 )
 
 
