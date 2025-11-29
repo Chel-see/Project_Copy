@@ -1,50 +1,43 @@
 from App.database import db
 from App.models.user import User
-from sqlalchemy import Enum
-import enum  
+from App.models.application import Application
+from App.models.context import Context
 
-class DecisionStatus(enum.Enum):
-    accepted = "accepted"
-    rejected = "rejected"
-    pending = "pending"
 
-class Shortlist(db.Model):
+class Shortlist(Application):  # because an application can exit and be a shortlisted application
     __tablename__ = 'shortlist'
-    id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
-    title = db.Column(db.String(512), nullable=False)
-    position_id = db.Column(db.Integer, db.ForeignKey('position.id'))
+    id = db.Column(db.Integer, db.ForeignKey('application.id'), primary_key=True)
     staff_id = db.Column(db.Integer, db.ForeignKey('staff.id'), nullable=False)
-    status = db.Column(Enum(DecisionStatus, native_enum=False), nullable=False, default=DecisionStatus.pending)
-    student = db.relationship('Student', backref=db.backref('shortlist', lazy=True))
-    position = db.relationship('Position', backref=db.backref('shortlist', lazy=True))
-    staff = db.relationship('Staff', backref=db.backref('shortlist', lazy=True))
+    isWithdrawn = db.Column(db.Boolean, default=False)
+    
+    staff = db.relationship('Staff', backref=('shortlist'), lazy=True)
 
-    def __init__(self, student_id, position_id, staff_id, title):
-        self.student_id = student_id
-        self.position_id = position_id
-        self.status = "pending"
-        self.staff_id = staff_id
-        self.title = title
-        
-    def update_status(self, status):
-        self.status = PositionStatus(status)
-        db.session.commit()
-        return self.status
 
-    def student_shortlist(self, student_id):
-        return db.session.query(Shortlist).filter_by(student_id=student_id).all()
+    def __init__(self, student_id, position_id, staff_id):  # an application will be created first with a position and by a student
+       super().__init__(student_id,position_id)             # initialize the parent class so i can have access to student_id and position_id
+       self.staff_id = staff_id
+         
 
-    def position_shortlist(self, position_id):
-        return db.session.query(Shortlist).filter_by(position_id=position_id).all()
+    
+    def checkWithdrawn(self):
+        return self.isWithdrawn
+
+    @classmethod
+    def student_shortlist(cls, student_id):  # gets all the short list for a particular student
+        return cls.query.filter_by(student_id=student_id).all()
+
+    @classmethod 
+    def position_shortlist(cls, position_id): # gets all the short list for a particular position
+        return cls.query.filter_by(position_id=position_id).all()
         
     def toJSON(self):
         return{
             "id": self.id,
-            "title": self.title,
             "student_id": self.student_id,
             "position_id": self.position_id,
-            "staff_id": self.staff_id,
-            "status": self.status.value
+            "staff_id": self.staff_id
         }
       
+    __mapper_args__={'polymorphic_identity':'shortlist'}
+
+

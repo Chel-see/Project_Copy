@@ -4,7 +4,8 @@ from flask.cli import with_appcontext, AppGroup
 from App.database import db, get_migrate
 from App.models import User
 from App.main import create_app
-from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize, open_position, add_student_to_shortlist, decide_shortlist, get_shortlist_by_student, get_shortlist_by_position, get_positions_by_employer)
+from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize, open_position, staff_shortlist_student, decide_shortlist, get_shortlist_by_student, get_shortlist_by_position, get_positions_by_employer)
+from App.controllers.shortlist import *
 
 
 # This commands file allow you to create convenient CLI commands for testing controllers
@@ -32,9 +33,11 @@ user_cli = AppGroup('user', help='User object commands')
 @user_cli.command("create", help="Creates a user")
 @click.argument("username", default="rob")
 @click.argument("password", default="robpass")
-@click.argument("user_type", default="student")
-def create_user_command(username, password, user_type):
-    result = create_user(username, password, user_type)
+@click.argument("email", default="rob@example.com")
+@click.argument("phone_number", default="1234567890")
+@click.argument("user_type", default="staff")
+def create_user_command(username, password, email, phone_number, user_type):
+    result = create_user(username, password, email, phone_number, user_type)
     if result:
         print(f'{username} created!')
     else:
@@ -50,40 +53,59 @@ def list_user_command(format):
     else:
         print(get_all_users_json())
 
-@user_cli.command("add_position", help="Adds a position")
-@click.argument("title", default="Software Engineer")
+
+
+@user_cli.command("add_position", help="Employer opens a position")
 @click.argument("employer_id", default=1)
-@click.argument("number", default=1)
-def add_position_command(title, employer_id, number):
-    position = open_position(title, employer_id, number)
+@click.argument("title", default="Software Engineer")
+@click.argument("number_of_positions", default=1)
+@click.argument("gpa_requirement",default=3.0)
+
+def add_position_command(employer_id,title, number_of_positions, gpa_requirement):
+    
+    position = open_position(employer_id, title, number_of_positions, gpa_requirement)
     if position:
-        print(f'{title} created!')
+        print(f'Employer {position.employer} created {position.title} position with id {position.id}')
     else:
         print(f'Employer {employer_id} does not exist')
 
-@user_cli.command("add_to_shortlist", help="Adds a student to a shortlist")
-@click.argument("student_id", default=1)
+
+
+@user_cli.command("add_to_shortlist", help="Staff adds a student to a shortlist")
+@click.argument("staff_id", default=2)
+@click.argument("student_id", default=3)
 @click.argument("position_id", default=1)
-@click.argument("staff_id", default=1)
-def add_to_shortlist_command(student_id, position_id, staff_id):
-    test = add_student_to_shortlist(student_id, position_id, staff_id)
+
+
+def add_to_shortlist_command(staff_id, student_id, position_id):
+
+    test = staff_shortlist_student(staff_id, student_id, position_id)
     if test:
-        print(f'Student {student_id} added to shortlist for position {position_id}')
+
+        print(f'Student {test.student_id} added to shortlist for position {test.position_id} by staff {test.staff_id}')
         print("\n\n__________________________________________________________________________\n\n")
     else:
         print('One of the following is the issue:')
-        print(f'    Position {position_id} is not open')
-        print(f'    Student {student_id} already in shortlist for position {position_id}')
-        print(f'    There is no more open slots for position {position_id}')
+        print(f'    An application for this student {student_id} was not found.')
+        print(f'    Student {student_id} does not meet GPA requirements')
+        print(f'    A shortlist already exist for student {student_id}')
         print("\n\n__________________________________________________________________________\n\n")
 
-@user_cli.command("decide_shortlist", help="Decides on a shortlist")
+@user_cli.command("decide_shortlist", help="Decides a student's shortlist outcome")
 @click.argument("student_id", default=1)
 @click.argument("position_id", default=1)
-@click.argument("decision", default="accepted")
+@click.argument("decision", default="accept")
 def decide_shortlist_command(student_id, position_id, decision):
-    test = decide_shortlist(student_id, position_id, decision)
-    if test:
+
+    decision = decision.lower().strip()
+    if decision not in ['accept', 'reject']:
+        print("Invalid. Decision must be either 'accept' or 'reject'")
+        print("\n\n__________________________________________________________________________\n\n")
+        return
+    
+    result = decide_shortlist(student_id, position_id, decision)
+    
+    if result:
         print(f'Student {student_id} is {decision} for position {position_id}')
         print("\n\n__________________________________________________________________________\n\n")
     else:
@@ -133,6 +155,32 @@ def get_positions_by_employer_command(employer_id):
     else:
             print(f'Employer {employer_id} has no positions')
             print("\n\n__________________________________________________________________________\n\n")
+
+@user_cli.command("withdraw_application", help="Withdraw an application")
+@click.argument("student_id", default=1)
+@click.argument("position_id", default=1)
+def withdraw_application_command(student_id, position_id):
+    shortlists = get_shortlist_by_position(position_id)
+    if not shortlists:
+        print(f'No shortlists found for the Position: {position_id}')
+        print("\n\n__________________________________________________________________________\n\n")
+        return
+
+    shortlist = next((s for s in shortlists if s.student_id == student_id), None)
+    if not shortlist:
+        print(f'No shortlist found for Student: {student_id} in Position: {position_id}')
+        print("\n\n__________________________________________________________________________\n\n")
+        return
+
+    if shortlist.isWithdrawn:
+        print(f'Student {student_id} has already withdrawn application for position {position_id}')
+        print("\n\n__________________________________________________________________________\n\n")
+        return
+    
+    withdraw_shortlist(shortlist)
+    print(f'Student {student_id} has successfully withdrawn application for position {position_id}')
+    print("\n\n__________________________________________________________________________\n\n")
+
             
 app.cli.add_command(user_cli) # add the group to the cli
 
