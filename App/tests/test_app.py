@@ -3,7 +3,11 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from App.main import create_app
 from App.database import db, create_db
-from App.models import User, Employer, Position, Shortlist, Staff, Student, PositionStatus, Context, Application, AppliedState, ShortListedState, AcceptedState, RejectedState
+from App.models import User, Employer, Position, Shortlist, Staff, Student, PositionStatus, Context, Application
+from App.models.applied_state import AppliedState
+from App.models.shortlisted_state import ShortListedState
+from App.models.accepted_state import AcceptedState
+from App.models.rejected_state import RejectedState
 from App.controllers import (
     create_user,
     get_all_users_json,
@@ -186,7 +190,7 @@ class UserIntegrationTests(unittest.TestCase):
         assert any(shortlist.id == s.id for s in shortlists)
         assert len(shortlists) > 0
 
-    def application_state_transitions(self):
+    def test_application_state_transitions(self):
         # Initial state: Applied
         app = Application(1, 1)
         assert isinstance(app.context.state, AppliedState)
