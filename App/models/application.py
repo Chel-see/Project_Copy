@@ -39,5 +39,3 @@ class Application(db.Model):
     def __repr__(self):
         return f'<Application id: {self.id} - Student ID: {self.student_id} - Position ID: {self.position_id} - Status: {self.status}>'
 
-    __mapper_args__={'polymorphic_identity':'application',
-                     'polymorphic_on':type}
