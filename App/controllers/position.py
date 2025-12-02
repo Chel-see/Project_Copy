@@ -30,6 +30,12 @@ def open_position(user_id, title, number_of_positions=1, gpa_requirement=None):
 #     db.session.commit()
 #     return eligible_students            
 
+def get_position(position_id):  # needed for testing 
+    return Position.query.get(position_id)
+
+def get_position_by_title(title):
+    return Position.query.filter_by(title=title).first() # needed for testing 
+
 def get_positions_by_employer(user_id):
     employer = Employer.query.get(user_id)
     return Position.query.filter_by(employer_id=employer.id).all()

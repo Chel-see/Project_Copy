@@ -54,7 +54,7 @@ def create_student(username, password, email, phone_number, degree, resume, dob,
                     exists = Application.query.filter_by(student_id=new_student.id,position_id=pos.id).first()
 
                     if not exists:
-                        app = Application(student_id=new_student.id, position_id=pos.id)
+                        app = Application(student_id=new_student.id, position_id=pos.id) # many different applications for 1 studnet to many positions they qualify for 
                         db.session.add(app) 
             db.session.commit()
             print("Applications created for eligible positions.Status is ",app.getStatus())

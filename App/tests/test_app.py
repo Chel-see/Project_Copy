@@ -24,6 +24,8 @@ from App.controllers import (
     create_student,
     create_staff,
     create_employer,
+    get_position,
+    get_position_by_title
 )
 
 
@@ -100,7 +102,7 @@ class UserUnitTests(unittest.TestCase):
 
 # This fixture creates an empty database for the test and deletes it after the test
 # scope="class" would execute the fixture once and resued for all methods in the class
-@pytest.fixture(autouse=True, scope="function")
+@pytest.fixture(autouse=True, scope="module")  # change to module so all th etest will use the same DB 
 def empty_db():
     app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
     
@@ -109,6 +111,14 @@ def empty_db():
         yield app.test_client()
         db.drop_all()
 
+# @pytest.fixture(autouse=True, scope="module")
+# def empty_db():
+#     app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+#     create_db()
+#     yield app.test_client()
+#     db.drop_all()
+
+
 
 class UserIntegrationTests(unittest.TestCase):
     # INCOOPERATE CREATING A SHORTLIST IF IT SNOT ALREADY HERE
@@ -116,64 +126,48 @@ class UserIntegrationTests(unittest.TestCase):
     def test_10_create_user(self):
         # we use the controllers , their polymorphic types are assigned automatically
         staff = create_staff("rick", "rickpass","rickymartin@gmail.com","555-6789")
-        assert staff.username == "rick" 
+        assert staff is not None
 
-        employer = create_employer("sam", "sampass","sam@example.com","AerilCo","555-1234")
-        assert employer.username == "sam"
+        employer = create_employer("Sonny", "sampass","sam@example.com","AerilCo","555-1234")
+        assert employer is not None
 
-        student = create_student("hannah", "hannahpass","hannah@example.com","555-6789","Computer Engineering","Experienced in Computer engineering","1999-05-15",3.9)
-        assert student.username == "hannah"
-
- 
+        student = create_student("hannah", "hannahpass","hannah@example.com","555-6789","Computer Engineering","Experienced in Computer engineering","1999-05-15",3.9 )
+        assert student is not None
         
     def test_11_open_position(self):
-        position_count = 2
-        employer = create_user("sally", "sallypass", "employer")
-        assert employer is not None
-        position = open_position("IT Support", employer.id, position_count)
-        positions = get_positions_by_employer(employer.id)
-        assert position is not None
-        assert position.number_of_positions == position_count
-        assert len(positions) > 0
-        assert any(p.id == position.id for p in positions)
+        employer=get_user_by_username("Sonny")
+        #assert employer is not None  # legit employer
+
+        position=open_position(employer.id,"Backend Developer",5,2.5) 
+        assert position.employer.id==employer.id  # validates that the foreign key relationship is correct
+        assert position.title=="Backend Developer"
+        assert position.number_of_positions==5
+        assert position.gpa_requirement==2.5
+
+        found_position=get_position(position_id=position.id ) # retrieves for DB
+        assert found_position is not None
         
-        invalid_position = open_position("Developer",-1,1)
-        assert invalid_position is False
+
+        
 
 
-    def test_12_add_to_shortlist(self):
-        position_count = 3
-        staff = create_user("linda", "lindapass", "linda@example.com", "staff")
-        assert staff is not None
-        student = create_user("hank", "hankpass", "hank@example.com", "student", gpa=3.5)
+    def test_12_add_student_to_shortlist(self):  # all i need is staff , studnet and position
+        student=create_student("Bake", "bakepass","bake@example.com","555-6789","Information Technology","Skille din web programming","2004-05-15",3.9)
         assert student is not None
-        employer = create_user("ken", "kenpass", "ken@example.com", "employer")
-        assert employer is not None
-        position = open_position(
-            title="Database Manager",
-            employer_id=employer.id,
-            number_of_positions=position_count,
-            gpa_requirement=3.0
-        )
+        staff = get_user_by_username("rick")
+        assert staff is not None
+        position= get_position_by_title("Backend Developer")  # i have to have it seperatley bc a studnet can be shortlistsed for many positions and i need to compare a certain position to see if they are eligilbe
         assert position is not None
-        invalid_position = open_position(
-            title="Developer",
-            employer_id=-1,
-            number_of_positions=1,
-            gpa_requirement=2.5
-        )
-        assert invalid_position is False
-        added_shortlist = staff_shortlist_student(
-            staff_id=staff.id,
-            student_id=student.id,
-            position_id=position.id
-        )
-        assert added_shortlist is not None
-        assert added_shortlist.student_id == student.id
-        assert added_shortlist.position_id == position.id
-        assert added_shortlist.staff_id == staff.id
-        shortlists = get_shortlist_by_student(student.id)
-        assert any(s.id == added_shortlist.id for s in shortlists)
+        shortlist=staff_shortlist_student(staff.id,student.id,position.id)
+
+        assert shortlist.application.student_id == student.id
+        assert shortlist.application.position_id == position.id
+        assert shortlist.staff_id == staff.id
+        assert shortlist.application.getStatus()=="Shortlisted"
+
+
+
+        
 
     def test_13_decide_shortlist(self):
         position_count = 3

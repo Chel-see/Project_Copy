@@ -12,7 +12,9 @@ class Student(User):
     resume = db.Column(db.String(256))
     dob = db.Column(db.String(10))
     gpa = db.Column(db.Float)
-    
+
+    #applications = db.relationship("Application", backref="student", lazy=True)  # help to get the position
+
     __mapper_args__={"polymorphic_identity" : "student"}
 
     def __init__(self, username, password, email , phone_number, degree,resume, dob,gpa):
