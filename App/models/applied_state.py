@@ -4,7 +4,7 @@ from App.models.application_state import ApplicationState
 
 class AppliedState(ApplicationState):
     def __init__(self):
-        super().__init__("applied")
+        super().__init__("Applied")
 
     def next(self, app):
         # Applied -> Shortlisted

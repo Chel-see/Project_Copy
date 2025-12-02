@@ -3,7 +3,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from App.main import create_app
 from App.database import db, create_db
-from App.models import User, Employer, Position, Shortlist, Staff, Student, PositionStatus, Context, Application
+from App.models import User, Employer, Position, Shortlist, Staff, Student, PositionStatus, Application # remove context 
 from App.models.applied_state import AppliedState
 from App.models.shortlisted_state import ShortListedState
 from App.models.accepted_state import AcceptedState
@@ -31,40 +31,41 @@ LOGGER = logging.getLogger(__name__)
 '''
 class UserUnitTests(unittest.TestCase):
 
-    def test_new_user(self):
-        user = User("bob", "bobpass")
-        assert user.username == "bob"
+    def test_00_new_user(self):
+        user = User("boblin", "boblinpass","boblin@gmail.com","111-2233")
+        assert user.username == "boblin"
 
-    def test_new_student(self):
-            student = Student("john", "johnpass")
+    def test_01_new_student(self):
+            student = Student("john", "johnpass","john@example.com","555-1234","Computer Science","I am good  at computer science","2000-01-01",gpa=3.8)
             assert student.username == "john"
             assert student.role == "student"
 
-    def test_new_staff(self):
-        staff = Staff("jim", "jimpass", "jim@example.com")
+    def test_02_new_staff(self):
+        staff = Staff("jim", "jimpass", "jim@example.com","245-0098")
         assert staff.username == "jim"
         assert staff.role == "staff"
         assert staff.email == "jim@example.com"
+        assert staff.phone_number == "245-0098"
 
-    def test_new_employer(self):
-        employer = Employer("alice", "alicepass")
+    def test_03_new_employer(self):
+        employer = Employer("alice", "alicepass","alice@example.com","Wonderland Inc.","333-5678")
         assert employer.username == "alice"
         assert employer.role == "employer"
 
-    def test_new_position(self):
+    def test_04_new_position(self):
         position = Position("Software Developer", 10, 5) 
         assert position.title == "Software Developer"
         assert position.employer_id == 10
         assert position.status == "open"
         assert position.number_of_positions == 5
 
-    def test_new_shortlist(self):
+    def test_05_new_shortlist(self):
         shortlist = Shortlist(1,2,3)
         assert shortlist.student_id == 1
         assert shortlist.position_id == 2
         assert shortlist.staff_id == 3
 
-    def test_applied_state(self):
+    def test_06_applied_state(self):
         state = AppliedState()
         # Check correct name
         assert state.getStateName() == "applied"
@@ -77,25 +78,25 @@ class UserUnitTests(unittest.TestCase):
         # withdraw() also returns None without context
         assert state.withdraw() is None
 
-    def test_rejected_state(self):
+    def test_07_rejected_state(self):
         state = RejectedState()
         name = state.getStateName()
         assert name=="Rejected"
     
     # pure function no side effects or integrations called
-    def test_get_json(self):
+    def test_08_get_json(self):
         user = User("bob", "bobpass")
         user_json = user.get_json()
         self.assertEqual(user_json["username"], "bob")
         self.assertTrue("id" in user.get_json())
     
-    def test_hashed_password(self):
+    def test_09_hashed_password(self):
         password = "mypass"
         hashed = generate_password_hash(password)
         user = User("bob", password)
         assert user.password != password
 
-    def test_check_password(self):
+    def test_10_check_password(self):
         password = "mypass"
         user = User("bob", password)
         assert user.check_password(password)

@@ -13,7 +13,8 @@ def get_eligible_students(position_id):
     gpa_required = position.gpa_requirement
 
     # All existing Application entries for this position
-    applications = Application.query.filter_by(position_id=position_id).all()
+    applications = Application.query.filter_by(position_id=position_id).all() # why not append all the students who have applications for this positions 
+                                                                                #bc we already checked their gpa upon creation ?
     if not applications:
         print("No applications found for this position.")
         return []
@@ -35,7 +36,7 @@ def get_eligible_students(position_id):
 # 2. GET ALL SHORTLISTS FOR A STUDENT
 def get_shortlist_by_student(student_id):
 
-    student = Student.query.filter_by(id=student_id).first()
+    student = Student.query.get(student_id)
     if not student:
         print("Student not found.")
         return []
@@ -62,32 +63,26 @@ def get_shortlist_by_position(position_id):
 # 4. WITHDRAW A SHORTLIST ENTRY
 def withdraw_shortlist(shortlist_id):
 
-    shortlist = Shortlist.query.filter_by(id=shortlist_id).first()
+    shortlist = Shortlist.query.get(shortlist_id)
 
     if not shortlist:
         print("Shortlist entry not found.")
         return None
 
     # Already withdrawn → idempotent behavior
-    if shortlist.is_withdrawn:
+    if shortlist.checkWithdrawn():
         print("Shortlist already withdrawn — no action taken.")
         return shortlist
 
     # If the shortlist was accepted already, withdrawing is not allowed
-    if shortlist.status.lower() == "accepted":
-        print("Cannot withdraw — shortlist already accepted.")
+    if shortlist.application.getStatus() == "Accepted" or shortlist.application.getStatus() == "Rejected": # look out for case sensitivity
+        print("Cannot withdraw an accepted application.")
         return None
-
-    # Mark as withdrawn
-    shortlist.is_withdrawn = True
+ 
+    shortlist.isWithdrawn = True
+    shortlist.application.withdraw()
 
     # Update state machine
-    try:
-        shortlist.setStatus("withdrawn")
-    except Exception as e:
-        print(f"Error updating application state: {e}")
-        return None
-
     db.session.commit()
     return shortlist
 

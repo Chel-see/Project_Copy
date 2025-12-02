@@ -12,28 +12,18 @@ def initialize():
 
     create_employer("jane", "janepass", "jane@gmail.com", "Jane's Company", "789-0123") # id=1
     create_staff("mary", "marrypass", "marryan@gmail.com","123-3456")   # id=2
-    create_student("bob","bobpass","bob@gmail.com","222-3333","Computer Science", "This internship will help me to grow my skills.","2000-05-15",3.5) # id=3
-    create_student("hon","honeypass","hon@gmail.com","123-23453","Computer Science","This internship will help me to grow my skills.","2000-05-15",2.0)
-    
-    application1=Application(student_id=3,position_id=1) #id=1 # new change added application
-
-    db.session.add(application1)
-    db.session.commit()
-    print(f'Application {application1.id} created')
-    Status=application1.getStatus()
-    print(Status)
-
-    # application2=Application(student_id=4,position_id=1) #id=1 # new change added application
-    # db.session.add(application2)
-    # db.session.commit()
-    # print(f'Application {application2.id} created')
-
     open_position(1,"Web Developer", 2, gpa_requirement=2.5) # id=1
-    staff_shortlist_student(2,3,1)
-    Status=application1.getStatus()
-    print(Status)
 
-    # staff_shortlist_student(2,4,1)  # Attempt to shortlist the same student again
+    # it should be noted that positions are expected to be created first in order for a studnet to submit an applications on creation
+    create_student("bob","bobpass","bob@gmail.com","222-3333","Computer Science", "This internship will help me to grow my skills.","2000-05-15",3.5) # id=3
+    
+    # the create student controller works by first creating a student and then later creating an application for that student for 
+    # AN EXISTING POSITION AT THAT MOMENT  based on their gpa
+   
+    
+    sl=staff_shortlist_student(2,3,1)
+    print("From initialize Status is ",sl.application.getStatus())
+    
     
    
 

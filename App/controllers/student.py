@@ -40,22 +40,24 @@ def create_student(username, password, email, phone_number, degree, resume, dob,
     print(f"Student {new_student.id} created!")
 
     # After creating the student check all positions for eligibility
-    positions = Position.query.all()
-    
-    for pos in positions:
-        if pos.gpa_requirement is None or gpa >= pos.gpa_requirement:
+    if new_student:
+        positions = Position.query.all()
+        
+        if not positions:
+            print("No positions available for at this time for this application.")
+        else:
 
-            # prevent duplicates
-            exists = Application.query.filter_by(
-                student_id=new_student.id,
-                position_id=pos.id
-            ).first()
+            for pos in positions:
+                if pos.gpa_requirement is None or new_student.gpa >= pos.gpa_requirement:
 
-            if not exists:
-                app = Application(student_id=new_student.id, position_id=pos.id)
-                db.session.add(app)
+                    # prevent duplicates
+                    exists = Application.query.filter_by(student_id=new_student.id,position_id=pos.id).first()
 
-    db.session.commit()
+                    if not exists:
+                        app = Application(student_id=new_student.id, position_id=pos.id)
+                        db.session.add(app) 
+            db.session.commit()
+            print("Applications created for eligible positions.Status is ",app.getStatus())
     return new_student
 
 
@@ -63,7 +65,7 @@ def create_student(username, password, email, phone_number, degree, resume, dob,
 # 2. VIEW ALL APPLICATIONS (Track Stage)
 def get_student_applications(student_id):
 
-    student = Student.query.filter_by(id=student_id).first()
+    student = Student.query.get(student_id)
     if not student:
         print("Error: Student not found.")
         return None
@@ -90,12 +92,12 @@ def get_application_status(student_id, position_id):
         print("Error: Application not found.")
         return None
 
-    return app.status
+    return app.getStatus()
 
 # 5. UPDATE STUDENT PROFILE 
 def update_student_profile(student_id, gpa=None, resume=None):
 
-    student = Student.query.filter_by(id=student_id).first()
+    student = Student.query.get(student_id)
     if not student:
         print("Error: Student not found.")
         return None

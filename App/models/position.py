@@ -11,7 +11,9 @@ class Position(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     number_of_positions = db.Column(db.Integer, default=1)
+
     status = db.Column(Enum(PositionStatus, native_enum=False), nullable=False, default=PositionStatus.open)
+
     employer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     employer = db.relationship("Employer", back_populates="positions")
 
@@ -41,7 +43,8 @@ class Position(db.Model):
         return
 
     def list_positions(self):
-        return db.session.query(Position).all()
+        all_positions=Position.query.all()
+        return all_positions
 
     def toJSON(self):
         return {
@@ -52,3 +55,5 @@ class Position(db.Model):
             "gpa_requirement": self.gpa_requirement,
             "employer_id": self.employer_id
         }
+    def __repr__(self):
+        return f'<Position ID: {self.id} - Title: {self.title} - Status: {self.status.value} - Employer ID: {self.employer_id}>'

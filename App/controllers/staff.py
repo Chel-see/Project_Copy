@@ -20,7 +20,7 @@ def create_staff(username, password, email, phone_number=None):
 
 # 2. GET STAFF BY ID
 def get_staff(staff_id):
-    staff = Staff.query.filter_by(id=staff_id).first()
+    staff = Staff.query.get(staff_id)
     if not staff:
         print("Staff not found")
         return None
@@ -88,7 +88,8 @@ def staff_shortlist_student(staff_id, student_id, position_id):
 
     if shortlist:
         from App.models.shortlisted_state import ShortListedState
-        shortlist.application.set_state(ShortListedState())
+        shortlist.application.set_state(ShortListedState())  # do i have to write commit here ?
+  
     # Update parent Application state
     #shortlist.setStatus("shortlisted") # new change , applications status is updated by the application class to the state name.
     # shortlist no longer has a status attribute or a method to setStatus.

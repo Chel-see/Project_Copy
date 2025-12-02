@@ -15,10 +15,10 @@ class Application(db.Model):
     def __init__(self, student_id, position_id):
         self.student_id = student_id
         self.position_id = position_id
-
         # initial state
         from App.models.applied_state import AppliedState
         self.set_state(AppliedState())
+        
 
     # ---------- Delegate to State ----------
     def next(self, decision=None):
@@ -34,7 +34,7 @@ class Application(db.Model):
     # ---------- State setter ----------
     def set_state(self, new_state):
         self.state = new_state
-        self.status = new_state.name  # Update DB string
+        self.status = new_state.name  # THIS UPDATES THE STATUS
         db.session.add(self)
         db.session.commit()
 

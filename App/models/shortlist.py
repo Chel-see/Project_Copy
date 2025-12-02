@@ -25,13 +25,13 @@ class Shortlist(db.Model):  # because an application can exit and be a shortlist
     def checkWithdrawn(self):
         return self.isWithdrawn
 
-    # @classmethod
-    # def student_shortlist(cls, student_id):  # gets all the short list for a particular student
-    #     return cls.query.filter_by(student_id=student_id).all()
+    @classmethod
+    def student_shortlist(cls, student_id):  # gets all the short list for a particular student
+        return cls.query.filter_by(student_id=cls.application.student_id).all()
 
-    # @classmethod 
-    # def position_shortlist(cls, position_id): # gets all the short list for a particular position
-    #     return cls.query.filter_by(position_id=position_id).all()
+    @classmethod 
+    def position_shortlist(cls, position_id): # gets all the short list for a particular position
+        return cls.query.filter_by(position_id=cls.application.position_id).all()
         
     def toJSON(self):
         return{
