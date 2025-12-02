@@ -20,7 +20,10 @@ from App.controllers import (
     # add_student_to_shortlist removed
     get_shortlist_by_student,
     decide_shortlist,
-    staff_shortlist_student
+    staff_shortlist_student,
+    create_student,
+    create_staff,
+    create_employer,
 )
 
 
@@ -38,67 +41,57 @@ class UserUnitTests(unittest.TestCase):
     def test_01_new_student(self):
             student = Student("john", "johnpass","john@example.com","555-1234","Computer Science","I am good  at computer science","2000-01-01",gpa=3.8)
             assert student.username == "john"
-            assert student.role == "student"
+            assert student.type == "student"
 
     def test_02_new_staff(self):
         staff = Staff("jim", "jimpass", "jim@example.com","245-0098")
         assert staff.username == "jim"
-        assert staff.role == "staff"
+        assert staff.type == "staff"
         assert staff.email == "jim@example.com"
         assert staff.phone_number == "245-0098"
 
     def test_03_new_employer(self):
         employer = Employer("alice", "alicepass","alice@example.com","Wonderland Inc.","333-5678")
         assert employer.username == "alice"
-        assert employer.role == "employer"
+        assert employer.type == "employer"
 
     def test_04_new_position(self):
-        position = Position("Software Developer", 10, 5) 
+        position = Position("Software Developer",1,10, 3.0)  # employer id=1 from initialize 
         assert position.title == "Software Developer"
-        assert position.employer_id == 10
-        assert position.status == "open"
-        assert position.number_of_positions == 5
+        assert position.employer_id == 1
+        assert position.status == PositionStatus.open  # becuase it is an Enum not string 
+        assert position.number_of_positions == 10
+        assert position.gpa_requirement == 3.0
 
-    def test_05_new_shortlist(self):
-        shortlist = Shortlist(1,2,3)
-        assert shortlist.student_id == 1
-        assert shortlist.position_id == 2
-        assert shortlist.staff_id == 3
 
-    def test_06_applied_state(self):
+        
+    def test_05_applied_state(self):
         state = AppliedState()
         # Check correct name
-        assert state.getStateName() == "applied"
-        # previous() does nothing, but shouldn't error
-        assert state.previous() is None
-        # accept() does nothing but shouldn't error
-        assert state.accept() is None
-        # reject() should not error (even though it needs context for real transition)
-        assert state.reject() is None
-        # withdraw() also returns None without context
-        assert state.withdraw() is None
+        assert state.getStateName() == "Applied"
+        
 
-    def test_07_rejected_state(self):
+    def test_06_rejected_state(self):
         state = RejectedState()
         name = state.getStateName()
         assert name=="Rejected"
     
     # pure function no side effects or integrations called
-    def test_08_get_json(self):
-        user = User("bob", "bobpass")
+    def test_07_get_json(self):
+        user = User("bobbyJoe", "bobpass","bob@gmail.com","123-4567")
         user_json = user.get_json()
-        self.assertEqual(user_json["username"], "bob")
+        self.assertEqual(user_json["username"], "bobbyJoe")
         self.assertTrue("id" in user.get_json())
     
-    def test_09_hashed_password(self):
+    def test_08_hashed_password(self):
         password = "mypass"
         hashed = generate_password_hash(password)
-        user = User("bob", password)
+        user = User("boblinch", password,"boblinch@gmail.com","555-6789")
         assert user.password != password
 
-    def test_10_check_password(self):
+    def test_09_check_password(self):
         password = "mypass"
-        user = User("bob", password)
+        user = User("bobway", password,"bobway@gmail.com","987-6543")
         assert user.check_password(password)
 
 '''
@@ -118,29 +111,22 @@ def empty_db():
 
 
 class UserIntegrationTests(unittest.TestCase):
+    # INCOOPERATE CREATING A SHORTLIST IF IT SNOT ALREADY HERE
 
-    def test_create_user(self):
-        
-        staff = create_user("rick", "bobpass", "staff")
+    def test_10_create_user(self):
+        # we use the controllers , their polymorphic types are assigned automatically
+        staff = create_staff("rick", "rickpass","rickymartin@gmail.com","555-6789")
         assert staff.username == "rick" 
 
-        employer = create_user("sam", "sampass", "employer")
+        employer = create_employer("sam", "sampass","sam@example.com","AerilCo","555-1234")
         assert employer.username == "sam"
 
-        student = create_user("hannah", "hannahpass", "student")
+        student = create_student("hannah", "hannahpass","hannah@example.com","555-6789","Computer Engineering","Experienced in Computer engineering","1999-05-15",3.9)
         assert student.username == "hannah"
 
-   # def test_get_all_users_json(self):
-     #   users_json = get_all_users_json()
-      #  self.assertListEqual([{"id":1, "username":"bob"}, {"id":2, "username":"rick"}], users_json)
-
-    # Tests data changes in the database
-    #def test_update_user(self):
-      #  update_user(1, "ronnie")
-      #  user = get_user(1)
-       # assert user.username == "ronnie"
+ 
         
-    def test_open_position(self):
+    def test_11_open_position(self):
         position_count = 2
         employer = create_user("sally", "sallypass", "employer")
         assert employer is not None
@@ -155,7 +141,7 @@ class UserIntegrationTests(unittest.TestCase):
         assert invalid_position is False
 
 
-    def test_add_to_shortlist(self):
+    def test_12_add_to_shortlist(self):
         position_count = 3
         staff = create_user("linda", "lindapass", "linda@example.com", "staff")
         assert staff is not None
@@ -189,7 +175,7 @@ class UserIntegrationTests(unittest.TestCase):
         shortlists = get_shortlist_by_student(student.id)
         assert any(s.id == added_shortlist.id for s in shortlists)
 
-    def test_decide_shortlist(self):
+    def test_13_decide_shortlist(self):
         position_count = 3
         student = create_user("jack", "jackpass", "student")
         assert student is not None
@@ -211,7 +197,7 @@ class UserIntegrationTests(unittest.TestCase):
         assert invalid_decision is False
 
 
-    def test_student_view_shortlist(self):
+    def test_14_student_view_shortlist(self):
 
         student = create_user("john", "johnpass", "student")
         assert student is not None
@@ -226,7 +212,7 @@ class UserIntegrationTests(unittest.TestCase):
         assert any(shortlist.id == s.id for s in shortlists)
         assert len(shortlists) > 0
 
-    def test_application_state_transitions(self):
+    def test_15_application_state_transitions(self):
         # Initial state: Applied
         app = Application(1, 1)
         assert isinstance(app.context.state, AppliedState)

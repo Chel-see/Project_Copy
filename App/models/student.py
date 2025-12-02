@@ -22,6 +22,9 @@ class Student(User):
         self.dob = dob
         self.gpa = gpa
       
+    @staticmethod
+    def get_student_by_username(username):
+        return Student.query.filter_by(username=username).first()
    
 
     def __repr__(self):

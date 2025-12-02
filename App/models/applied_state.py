@@ -22,6 +22,9 @@ class AppliedState(ApplicationState):
         from App.models.rejected_state import RejectedState
         app.set_state(RejectedState())
 
+    def getMatchedCompanies(self, app):
+        return []
+
 
 
 

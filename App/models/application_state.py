@@ -17,6 +17,13 @@ class ApplicationState(ABC):
     def withdraw(self,application):
         pass
 
+    def getStateName(self):
+        return self.name
+
+    @abstractmethod
+    def getMatchedCompanies(self,application):
+        pass
+
 
 
 

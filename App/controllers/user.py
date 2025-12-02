@@ -29,9 +29,9 @@ def create_user(username, password, email, phone_number, user_type):
         return False
 
 
-def get_user_by_username(username):
-    result = db.session.execute(db.select(User).filter_by(username=username))
-    return result.scalar_one_or_none()
+def get_user_by_username(username): # needed for unit testing 
+  name =User.query.filter_by(username=username).first()
+  return name
 
 def get_user(id):
     return db.session.get(User, id)

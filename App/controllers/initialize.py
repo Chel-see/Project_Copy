@@ -14,9 +14,11 @@ def initialize():
     create_staff("mary", "marrypass", "marryan@gmail.com","123-3456")   # id=2
     open_position(1,"Web Developer", 2, gpa_requirement=2.5) # id=1
 
+    open_position(1,"Data Analyst", 2, gpa_requirement=3.0) # id=2
+
     # it should be noted that positions are expected to be created first in order for a studnet to submit an applications on creation
     create_student("bob","bobpass","bob@gmail.com","222-3333","Computer Science", "This internship will help me to grow my skills.","2000-05-15",3.5) # id=3
-    
+
     # the create student controller works by first creating a student and then later creating an application for that student for 
     # AN EXISTING POSITION AT THAT MOMENT  based on their gpa
    
