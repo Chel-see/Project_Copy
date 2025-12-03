@@ -25,7 +25,8 @@ from App.controllers import (
     create_staff,
     create_employer,
     get_position,
-    get_position_by_title
+    get_position_by_title,
+    get_student_shortlisted_positions
 )
 
 
@@ -208,90 +209,68 @@ class UserIntegrationTests(unittest.TestCase):
 
     def test_14_student_view_shortlist(self):
 
-        student = create_user("john", "johnpass", "student")
-        assert student is not None
-        staff = create_user ("tim", "timpass", "staff")
+        staff = create_staff("allan", "alllanass", "all@example.com", "555-1111")
         assert staff is not None
-        employer =  create_user("joe", "joepass", "employer")
+
+        employer =  create_employer("joella", "joeypass", "abctech@gmail.com","ABCTech","568-9907")
         assert employer is not None
-        position = open_position("Software Intern", employer.id, 4)
+
+        position = open_position(employer.id,"Software Eng", 4,2.0)
         assert position is not None
-        shortlist = add_student_to_shortlist(student.id, position.id ,staff.id)
+
+        student = create_student("Mason", "masonpass", "m@example.com", "555-333","Computer Science", "Experienced in Python", "2001-01-01", 3.5)
+        assert student is not None
+
+
+        shortlistSt= staff_shortlist_student(staff.id,student.id, position.id)
+        assert shortlistSt is not None
+        
         shortlists = get_shortlist_by_student(student.id)
-        assert any(shortlist.id == s.id for s in shortlists)
         assert len(shortlists) > 0
 
+
     def test_15_application_state_transitions(self):
-        # Initial state: Applied
-        app = Application(1, 1)
-        assert isinstance(app.context.state, AppliedState)
-        assert app.getStatus() == "applied"
+        
+        staff = create_staff("Mailen", "mailpass","mail@gmail.com","555-6789")
+        assert staff is not None
 
-        # ---------- Next transitions ----------
-        app.setStatus("shortlisted")  # Applied → Shortlisted
-        assert isinstance(app.context.state, ShortListedState)
-        assert app.getStatus() == "shortlisted"
+        employer = create_employer("Marsakin", "Marspass","Mars@example.com","DaCo","555-1234")
+        assert employer is not None
 
-        app.setStatus("accept")  # Shortlisted → Accepted
-        assert isinstance(app.context.state, AcceptedState)
-        assert app.getStatus() == "accepted"
+        position = open_position(employer.id,"Jr Web Developer", 4,1.5)
+        assert position is not None
 
-        app.setStatus("shortlisted")  # Back to Shortlisted to test rejection
-        app.setStatus("reject")  # Shortlisted → Rejected
-        assert isinstance(app.context.state, RejectedState)
-        assert app.getStatus() == "rejected"
+        student = create_student("hannahta", "hannahtapass","hannahta@example.com","555-6789","Computer Engineering","Good at Java","1999-05-15",1.5 )
+        assert student is not None
 
-        # ---------- Previous transitions ----------
-        app.context.previous()  # Rejected → Shortlisted
-        assert isinstance(app.context.state, ShortListedState)
-        assert app.getStatus() == "shortlisted"
 
-        app.context.previous()  # Shortlisted → Applied
-        assert isinstance(app.context.state, AppliedState)
-        assert app.getStatus() == "applied"
+    #-----------Check Applied State---------------------------
+        app=Application.query.filter_by(student_id=student.id,position_id=position.id).first()
+        assert app.getStatus()=="Applied"
 
-        app.setStatus("shortlisted")
-        app.setStatus("accept")
-        app.context.previous()  # Accepted → Shortlisted
-        assert isinstance(app.context.state, ShortListedState)
-        assert app.getStatus() == "shortlisted"
+    #-----------Check Shortlisted State---------------------------
+        shortlist=staff_shortlist_student(staff.id, student.id, position.id)
+        assert shortlist.application.getStatus()=="Shortlisted"
 
-        # ---------- Withdraw transitions ----------
-        app.setStatus("shortlisted")
-        app.context.withdraw()  # Shortlisted → Rejected
-        assert isinstance(app.context.state, RejectedState)
-        assert app.getStatus() == "rejected"
+    #-----------Transition to Rejected State through decision---------------------
+        decision=decide_shortlist(student.id,position.id,"reject")
+        assert decision.application.getStatus()=="Rejected"
 
-        app.setStatus("accept")
-        app.context.withdraw()  # Accepted → Rejected
-        assert isinstance(app.context.state, RejectedState)
-        assert app.getStatus() == "rejected"
+    #-------------Check Previous------------------
+        decision.application.previous()
+        assert decision.application.getStatus()=="Shortlisted"
+    
+    #--------------Transition to Accepted State through decision-----------------------------------------
+        decision=decide_shortlist(student.id,position.id,"accept")
+        assert decision.application.getStatus()=="Accepted"
 
-        app.setStatus("applied")
-        app.context.withdraw()  # Applied → Applied (no-op)
-        assert isinstance(app.context.state, AppliedState)
-        assert app.getStatus() == "applied"
+    #-----------Check Withdraw from Accepted----------------------------
+        decision.application.withdraw()
+        assert decision.application.getStatus()=="Rejected"
 
-        app.setStatus("reject")
-        app.context.withdraw()  # Rejected → Rejected (no-op)
-        assert isinstance(app.context.state, RejectedState)
-        assert app.getStatus() == "rejected"
 
-        # ---------- No-op transitions ----------
-        app.setStatus("applied")
-        app.context.previous()  # No previous from Applied
-        assert isinstance(app.context.state, AppliedState)
-        assert app.getStatus() == "applied"
 
-        app.setStatus("accept")
-        app.context.next()  # No next from Accepted
-        assert isinstance(app.context.state, AcceptedState)
-        assert app.getStatus() == "accepted"
-
-        app.setStatus("reject")
-        app.context.next()  # No next from Rejected
-        assert isinstance(app.context.state, RejectedState)
-        assert app.getStatus() == "rejected"
+     
 
     # Tests data changes in the database
     #def test_update_user(self):

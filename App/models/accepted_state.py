@@ -10,7 +10,7 @@ class AcceptedState(ApplicationState):
 
     def previous(self,app):
        
-            from models.shortlisted_state import ShortListedState
+            from App.models.shortlisted_state import ShortListedState
             app.set_state(ShortListedState())  # No previous state from Accepted
 
     def acceptOffer(self):
@@ -18,8 +18,8 @@ class AcceptedState(ApplicationState):
 
     def withdraw(self,app):
         
-            from models.rejected_state import RejectedState
-            app.set_tate(RejectedState())
+            from App.models.rejected_state import RejectedState
+            app.set_state(RejectedState())
             
     def getMatchedCompanies(self):
         return []  # No matched companies for accepted applications
