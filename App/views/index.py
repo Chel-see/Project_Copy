@@ -3,23 +3,22 @@ from App.controllers import create_user, initialize
 index_views = Blueprint('index_views', __name__, template_folder='templates')
 
 
-# @index_views.route('/', methods=['GET'])
-# def index_page():
-#       # This replaces the HTML template with a simple JSON response
-#     return {
-#         "status": "running",
-#         "message": "Hello! Your Flask app is live!"
-#     }
-
-
-
 @index_views.route('/', methods=['GET'])
 def index_page():
-    return jsonify({
-        "status": "running",
-        "message": "API is live!",
-        "available_endpoints": ["/user", "/auth", "/position", "/shortlist"]
-    })
+      # This replaces the HTML template with a simple JSON response
+    return {
+        render_template('index.html', is_authenticated=False)
+    }
+
+
+
+# @index_views.route('/', methods=['GET'])
+# def index_page():
+#     return jsonify({
+#         "status": "running",
+#         "message": "API is live!",
+#         "available_endpoints": ["/user", "/auth", "/position", "/shortlist"]
+#     })
 
 
 @index_views.route('/init', methods=['GET'])
